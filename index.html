@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Мессенджер</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <section id="authView" class="auth">
+        <h1>Мессенджер</h1>
+        <p>Открытая демо-версия: данные могут пропасть. Не используй настоящий пароль и не отправляй личные данные.</p>
+        <form id="authForm">
+            <label for="authUsername">Имя пользователя</label>
+            <input id="authUsername" minlength="3" maxlength="20" required
+                   autocomplete="username" placeholder="Например, sasha_1">
+            <label for="authPassword">Пароль</label>
+            <input id="authPassword" type="password" minlength="8" maxlength="128"
+                   required autocomplete="current-password" placeholder="Не короче 8 символов">
+            <label class="show-password"><input id="showAuthPassword" type="checkbox"> Показать пароль</label>
+            <button id="authSubmit" class="primary" type="submit">Войти</button>
+        </form>
+        <button id="authToggle" class="link-button" type="button">Создать аккаунт</button>
+        <p id="authNotice" class="notice" role="status"></p>
+    </section>
+
+    <main id="chatApp" class="chat-app hidden">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-title">
+                    <h1>Сообщения <span id="unreadBadge" class="unread-badge hidden" aria-live="polite">0</span></h1>
+                    <div class="sidebar-actions">
+                        <button id="commandOpen" class="link-button settings-button" type="button"
+                                aria-label="Открыть командную панель" title="Командная панель">⌘</button>
+                        <button id="settingsOpen" class="link-button settings-button" type="button"
+                                aria-label="Открыть настройки">⚙</button>
+                        <button id="themeToggle" class="link-button" type="button"
+                                aria-label="Включить тёмную тему" aria-pressed="false">🌙</button>
+                        <button id="logoutButton" class="link-button" type="button">Выйти</button>
+                    </div>
+                </div>
+                <input id="userSearch" type="search" placeholder="Найти пользователя"
+                       aria-label="Найти пользователя" maxlength="20" autocomplete="off">
+                <div class="group-actions">
+                    <button id="groupCreate" type="button">＋ Создать группу</button>
+                    <button id="groupJoin" type="button">Войти по коду</button>
+                </div>
+            </div>
+            <div id="groupList" class="group-list" aria-label="Мои группы"></div>
+            <section class="recent-section" aria-label="Недавние чаты">
+                <h2 class="list-section-title">Недавние чаты</h2>
+                <div id="recentList"></div>
+            </section>
+            <div id="userList" class="user-list"></div>
+        </aside>
+        <section class="chat">
+            <header class="chat-header">
+                <button id="backButton" class="mobile-back" type="button" aria-label="Назад">‹</button>
+                <div id="chatAvatar" class="avatar">?</div>
+                <div>
+                    <strong id="chatTitle">Выбери собеседника</strong>
+                    <small id="chatSubtitle">Личные сообщения</small>
+                    <small id="presenceIndicator" class="presence-indicator hidden" aria-live="polite"></small>
+                    <small id="typingIndicator" class="typing-indicator hidden" aria-live="polite"></small>
+                </div>
+                <div id="callActions" class="call-actions hidden" aria-label="Позвонить">
+                    <button id="callAudio" type="button" aria-label="Голосовой звонок" title="Голосовой звонок">☎</button>
+                    <button id="callVideo" type="button" aria-label="Видеозвонок" title="Видеозвонок">▣</button>
+                </div>
+            </header>
+            <section id="pinnedMessages" class="pinned-messages hidden" aria-label="Закреплённые сообщения">
+                <strong>📌 Закреплено</strong>
+                <div id="pinnedList"></div>
+            </section>
+            <div id="messages" class="messages" aria-live="polite">
+                <div class="empty-chat">Выбери пользователя слева, чтобы открыть переписку.</div>
+            </div>
+            <div id="replyPreview" class="reply-preview hidden">
+                <span id="replyPreviewText"></span>
+                <button id="replyCancel" type="button" aria-label="Отменить ответ">×</button>
+            </div>
+            <form id="messageForm" class="composer hidden">
+                <button id="emojiToggle" class="tool-button" type="button" aria-label="Добавить смайлик">😊</button>
+                <button id="pollOpen" class="tool-button" type="button" aria-label="Создать опрос">▤</button>
+                <label class="tool-button" for="mediaInput" aria-label="Прикрепить фото или видео" title="Фото или видео до 20 МБ">＋</label>
+                <input id="mediaInput" class="attachment-input" type="file"
+                       accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm">
+                <button id="voiceToggle" class="tool-button" type="button"
+                        aria-label="Записать голосовое сообщение" title="Голосовое сообщение до 2 минут">🎙</button>
+                <input id="messageInput" maxlength="1000" autocomplete="off"
+                       placeholder="Сообщение" aria-label="Сообщение" required>
+                <button class="send-button" type="submit" aria-label="Отправить">➤</button>
+                <div id="emojiPicker" class="emoji-picker hidden" aria-label="Выбери смайлик"></div>
+            </form>
+        </section>
+    </main>
+
+    <dialog id="callDialog" class="settings-dialog call-dialog" aria-labelledby="callTitle">
+        <div class="settings-header">
+            <h2 id="callTitle">Звонок</h2>
+        </div>
+        <div class="call-videos">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay muted playsinline></video>
+            <audio id="remoteAudio" autoplay></audio>
+            <div id="callPlaceholder" aria-live="polite">
+                <span id="callPlaceholderAvatar">?</span>
+                <span id="callPlaceholderText">Ожидаем подключения...</span>
+            </div>
+        </div>
+        <p id="callStatus" class="call-status" role="status"></p>
+        <p class="call-note">
+            Звонки идут напрямую между браузерами; собеседник может видеть сетевой IP. Для части сетей нужен TURN-сервер.
+        </p>
+        <div class="call-controls">
+            <button id="callAccept" type="button" aria-label="Ответить на звонок">
+                <span class="call-control-icon">☎</span>Ответить
+            </button>
+            <button id="callReject" type="button" aria-label="Отклонить звонок">
+                <span class="call-control-icon">✕</span>Отклонить
+            </button>
+            <button id="callMute" type="button" aria-label="Выключить микрофон">
+                <span class="call-control-icon">🎙</span>Микрофон
+            </button>
+            <button id="callCamera" type="button" aria-label="Выключить камеру">
+                <span class="call-control-icon">▣</span>Камера
+            </button>
+            <button id="screenShare" type="button">
+                <span class="call-control-icon">▤</span>Экран
+            </button>
+            <button id="callEnd" type="button" aria-label="Завершить звонок">
+                <span class="call-control-icon">☎</span>Завершить
+            </button>
+        </div>
+    </dialog>
+
+    <dialog id="groupDialog" class="settings-dialog" aria-labelledby="groupDialogTitle">
+        <div class="settings-header">
+            <h2 id="groupDialogTitle">Группы</h2>
+            <button id="groupDialogClose" class="settings-close" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <div class="settings-content">
+            <section class="settings-section">
+                <h3>Создать группу</h3>
+                <label for="groupNameInput">Название (от 3 до 40 символов)</label>
+                <input id="groupNameInput" maxlength="40" autocomplete="off">
+                <button id="groupCreateSubmit" type="button">Создать</button>
+            </section>
+            <section class="settings-section">
+                <h3>Войти в группу</h3>
+                <label for="groupInviteInput">Код приглашения</label>
+                <input id="groupInviteInput" maxlength="20" autocomplete="off">
+                <button id="groupJoinSubmit" type="button">Войти</button>
+            </section>
+            <p id="groupStatus" class="settings-status" role="status"></p>
+        </div>
+    </dialog>
+
+    <dialog id="pollDialog" class="settings-dialog poll-compose-dialog" aria-labelledby="pollTitle">
+        <div class="settings-header">
+            <h2 id="pollTitle">Новый опрос</h2>
+            <button id="pollClose" class="settings-close" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <form id="pollForm" class="settings-content">
+            <section class="settings-section">
+                <label for="pollQuestion">Вопрос</label>
+                <input id="pollQuestion" maxlength="200" required placeholder="О чём спросим?">
+            </section>
+            <section class="settings-section">
+                <h3>Варианты ответа</h3>
+                <div class="poll-options-input">
+                    <input class="poll-option-input" maxlength="100" required placeholder="Вариант 1">
+                    <input class="poll-option-input" maxlength="100" required placeholder="Вариант 2">
+                    <input class="poll-option-input" maxlength="100" placeholder="Вариант 3 (необязательно)">
+                    <input class="poll-option-input" maxlength="100" placeholder="Вариант 4 (необязательно)">
+                    <input class="poll-option-input" maxlength="100" placeholder="Вариант 5 (необязательно)">
+                    <input class="poll-option-input" maxlength="100" placeholder="Вариант 6 (необязательно)">
+                </div>
+                <p class="settings-note">Можно выбрать несколько ответов. Опрос виден только собеседникам этого чата.</p>
+            </section>
+            <button class="primary" type="submit">Отправить опрос</button>
+            <p id="pollStatus" class="settings-status" role="status"></p>
+        </form>
+    </dialog>
+
+    <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
+        <div class="settings-header">
+            <h2 id="settingsTitle">Настройки</h2>
+            <button id="settingsClose" class="settings-close" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <div class="settings-content">
+            <section class="settings-section">
+                <h3>Профиль</h3>
+                <div class="profile-avatar-row">
+                    <div id="profileAvatar" class="avatar profile-avatar">?</div>
+                    <div>
+                        <label class="avatar-upload-button" for="avatarInput">Выбрать фото</label>
+                        <input id="avatarInput" class="attachment-input" type="file"
+                               accept="image/*">
+                        <button id="avatarRemove" class="link-button" type="button">Убрать фото</button>
+                        <p class="settings-note">JPEG до 512 КБ. Изображение будет уменьшено.</p>
+                    </div>
+                </div>
+                <span class="field-label">Digital ID</span>
+                <div class="digital-id-row">
+                    <code id="digitalIdValue"></code>
+                    <button id="digitalIdCopy" type="button">Копировать</button>
+                </div>
+                <p class="settings-note">Публичный ID для поиска и обмена контактами.</p>
+                <label for="displayNameInput">Отображаемое имя</label>
+                <input id="displayNameInput" maxlength="30" autocomplete="nickname">
+                <p class="settings-note">Имя для собеседников. Имя входа не меняется.</p>
+                <button id="saveProfile" type="button">Сохранить имя</button>
+                <p id="profileStatus" class="settings-status" role="status"></p>
+            </section>
+            <section class="settings-section">
+                <h3>Внешний вид</h3>
+                <label for="themeSelect">Тема</label>
+                <select id="themeSelect">
+                    <option value="light">Светлая</option>
+                    <option value="dark">Тёмная</option>
+                    <option value="cyberpunk">Киберпанк</option>
+                </select>
+                <label for="fontSizeSelect">Размер текста</label>
+                <select id="fontSizeSelect">
+                    <option value="small">Маленький</option>
+                    <option value="medium">Обычный</option>
+                    <option value="large">Большой</option>
+                </select>
+            </section>
+            <section id="notificationSettings" class="settings-section">
+                <h3>Уведомления</h3>
+                <p class="settings-note">Новые сообщения из всех чатов отмечаются счётчиком. Браузерные уведомления появляются, когда вкладка неактивна.</p>
+                <button id="notificationsToggle" type="button">Включить уведомления</button>
+                <p id="notificationsStatus" class="settings-status" role="status"></p>
+            </section>
+            <section class="settings-section">
+                <h3>Смена пароля</h3>
+                <label class="show-password"><input id="showSettingsPasswords" type="checkbox"> Показать пароли</label>
+                <label for="oldPasswordInput">Текущий пароль</label>
+                <input id="oldPasswordInput" type="password" maxlength="128" autocomplete="current-password">
+                <label for="newPasswordInput">Новый пароль</label>
+                <input id="newPasswordInput" type="password" minlength="8" maxlength="128" autocomplete="new-password">
+                <label for="confirmPasswordInput">Повтори новый пароль</label>
+                <input id="confirmPasswordInput" type="password" minlength="8" maxlength="128" autocomplete="new-password">
+                <button id="changePassword" type="button">Сменить пароль</button>
+                <p id="passwordStatus" class="settings-status" role="status"></p>
+            </section>
+        </div>
+    </dialog>
+
+    <dialog id="commandDialog" class="settings-dialog command-dialog" aria-labelledby="commandTitle">
+        <div class="settings-header">
+            <h2 id="commandTitle">Командная панель</h2>
+            <button id="commandClose" class="settings-close" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <form id="commandForm" class="settings-content">
+            <section class="settings-section">
+                <label for="commandInput">Команда</label>
+                <input id="commandInput" maxlength="200" autocomplete="off" placeholder="/help">
+                <p class="settings-note">Команды управляют только мессенджером; команды системы не выполняются.</p>
+                <button class="primary" type="submit">Выполнить</button>
+                <p id="commandStatus" class="settings-status" role="status"></p>
+            </section>
+        </form>
+    </dialog>
+
+    <script src="/static/app.js" defer></script>
+</body>
+</html>
