@@ -3,7 +3,8 @@ services:
     name: learning-messenger
     runtime: python
     plan: free
-    buildCommand: python -m py_compile "мессенджер.py" messenger_updates.py && python -c "from pathlib import Path; required = ('index.html', 'styles.css', 'app.js'); missing = [name for name in required if not Path(name).is_file()]; assert not missing, f'Missing required app files: {missing}'"
+    buildCommand: >-
+      python -m py_compile "мессенджер.py" messenger_updates.py && python -c "from pathlib import Path; assert all(Path(name).is_file() for name in ('index.html', 'styles.css', 'app.js'))"
     startCommand: python "мессенджер.py"
     envVars:
       - key: HOST
