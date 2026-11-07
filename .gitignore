@@ -1,0 +1,7 @@
+__pycache__/
+messenger.db
+messenger.db-shm
+messenger.db-wal
+messenger.db.pre-update-0.2
+messenger.db.pre-update-0.2-shm
+messenger.db.pre-update-0.2-wal
