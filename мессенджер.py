@@ -31,14 +31,15 @@ PORT = int(os.environ.get("PORT", "8000"))
 DATABASE = Path(os.environ.get(
     "MESSENGER_DB", str(Path(__file__).with_name("messenger.db"))
 ))
-TEMPLATE = Path(__file__).with_name("templates") / "index.html"
+PROJECT_DIRECTORY = Path(__file__).resolve().parent
+TEMPLATE = PROJECT_DIRECTORY / "index.html"
 STATIC_FILES = {
     "/static/styles.css": (
-        Path(__file__).with_name("static") / "styles.css",
+        PROJECT_DIRECTORY / "styles.css",
         "text/css; charset=utf-8",
     ),
     "/static/app.js": (
-        Path(__file__).with_name("static") / "app.js",
+        PROJECT_DIRECTORY / "app.js",
         "text/javascript; charset=utf-8",
     ),
 }
